@@ -4,11 +4,10 @@ import Prelude
 
 import Data.Either (isLeft)
 import Data.Map as Map
-import Data.Maybe (Maybe(..))
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Main (HostPort, Url, httpURL, httpsURL, urlToString)
+import Url (HostPort, Url, httpURL, httpsURL, toString)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldContain, shouldEqual, shouldSatisfy)
 import Test.Spec.Reporter (consoleReporter)
@@ -87,7 +86,7 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
 testStringify :: Url -> String -> Spec Unit
 testStringify url expected =
   it ("should stringify to " <> expected) do
-    urlToString url `shouldEqual` expected
+    toString url `shouldEqual` expected
 
 testParseSecureUrlHost :: String -> String -> Spec Unit
 testParseSecureUrlHost unparsedUrl expected =
