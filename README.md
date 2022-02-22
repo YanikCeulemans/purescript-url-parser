@@ -13,6 +13,6 @@ This will give you either a `ParseError` or a `Url`. A `Url` can be stringified 
 See the unit tests for more information.
 
 Future improvements:
-* Provide a convenience function to parse urls. This will prevent the need to depend on `Text.Parsing.StringParser` as a consumer of this module.
-* Provide more functions to manipulate urls.
-* Prevent invalid `Url` construction by using smart constructors. It is now possible to create a negative port number for example.
+- [x] Provide a convenience function to parse urls. This will prevent the need to depend on `Text.Parsing.StringParser` as a consumer of this module.
+- [ ] Provide more functions to manipulate urls.
+- [ ] Prevent invalid `Url` construction by using smart constructors. It is now possible to create a negative port number for example.

@@ -1,4 +1,4 @@
-module Url (httpURL, httpsURL, toString, Url, HostPort) where
+module Url (parse, toString, Url, HostPort, ParseError) where
 
 import Prelude
 
@@ -6,6 +6,7 @@ import Control.Alt ((<|>))
 import Data.Array (many, fromFoldable, snoc)
 import Data.Array as Array
 import Data.Char as Char
+import Data.Either (Either)
 import Data.Foldable (fold, intercalate)
 import Data.FunctorWithIndex (mapWithIndex)
 import Data.Int as Int
@@ -17,23 +18,9 @@ import Data.String (toLower)
 import Data.String.CodeUnits (fromCharArray, singleton)
 import Data.Tuple (Tuple(..))
 import Partial.Unsafe (unsafeCrashWith)
-import Text.Parsing.StringParser (Parser, fail, try)
-import Text.Parsing.StringParser.CodeUnits
-  ( alphaNum
-  , anyDigit
-  , anyLetter
-  , char
-  , eof
-  , oneOf
-  , string
-  , upperCaseChar
-  )
-import Text.Parsing.StringParser.Combinators
-  ( choice
-  , many1
-  , optionMaybe
-  , sepBy
-  )
+import Text.Parsing.StringParser (Parser, fail, runParser, try)
+import Text.Parsing.StringParser.CodeUnits (alphaNum, anyDigit, anyLetter, char, eof, oneOf, string, upperCaseChar)
+import Text.Parsing.StringParser.Combinators (choice, many1, optionMaybe, sepBy)
 
 scheme :: Parser String
 scheme = toLower <<< fromCharArray <<< fromFoldable <$> many1 schemeCharacter
@@ -45,9 +32,17 @@ schemeCharacter =
     <|> upperCaseChar
     <|> oneOf [ '+', '.', '-' ]
 
-type Url = { scheme :: String, hostPort :: HostPort, path :: Array String, search :: Map.Map String (Array String) }
-type HostPort = { host :: String, port :: Int }
+type Url =
+  { scheme :: String
+  , hostPort :: HostPort
+  , path :: Array String
+  , search :: Map.Map String (Array String)
+  }
 
+type HostPort = { host :: String, port :: Int }
+type ParseError = { error :: String, pos :: Int }
+
+-- | Returns a stringified `Url` with escaped characters if needed.
 toString :: Url -> String
 toString url =
   fold
@@ -96,6 +91,12 @@ httpURL' unparsedScheme = do
     , path: parsedPath
     , search: parsedSearch
     }
+
+-- | Returns either a parsed `Url` or a `ParseError`.
+parse :: String -> Either ParseError Url
+parse = runParser url
+  where
+  url = httpURL <|> httpsURL
 
 hostPort :: Parser HostPort
 hostPort = do

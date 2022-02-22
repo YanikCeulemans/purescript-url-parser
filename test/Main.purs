@@ -7,12 +7,11 @@ import Data.Map as Map
 import Data.Tuple (Tuple(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Url (HostPort, Url, httpURL, httpsURL, toString)
+import Url (HostPort, Url, parse, toString)
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldContain, shouldEqual, shouldSatisfy)
 import Test.Spec.Reporter (consoleReporter)
 import Test.Spec.Runner (runSpec)
-import Text.Parsing.StringParser (runParser)
 
 main :: Effect Unit
 main = launchAff_ $ runSpec [ consoleReporter ] do
@@ -92,45 +91,45 @@ testParseSecureUrlHost :: String -> String -> Spec Unit
 testParseSecureUrlHost unparsedUrl expected =
   it ("should parse " <> unparsedUrl) do
     let
-      hostPortToTest = _.host <<< _.hostPort <$> runParser httpsURL unparsedUrl
+      hostPortToTest = _.host <<< _.hostPort <$> parse unparsedUrl
     hostPortToTest `shouldContain` expected
 
 testParseUrlPort :: String -> HostPort -> Spec Unit
 testParseUrlPort unparsedUrl expected =
   it ("should parse " <> unparsedUrl) do
     let
-      hostPortToTest = _.hostPort <$> runParser httpURL unparsedUrl
+      hostPortToTest = _.hostPort <$> parse unparsedUrl
     hostPortToTest `shouldContain` expected
 
 testParseUrlHost :: String -> String -> Spec Unit
 testParseUrlHost unparsedUrl expected =
   it ("should parse " <> unparsedUrl) do
     let
-      hostPortToTest = _.host <<< _.hostPort <$> runParser httpURL unparsedUrl
+      hostPortToTest = _.host <<< _.hostPort <$> parse unparsedUrl
     hostPortToTest `shouldContain` expected
 
 testParseUrlSearch :: String -> Map.Map String (Array String) -> Spec Unit
 testParseUrlSearch unparsedUrl expected =
   it ("should parse " <> unparsedUrl <> " having the correct search") do
     let
-      searchToTest = _.search <$> runParser httpURL unparsedUrl
+      searchToTest = _.search <$> parse unparsedUrl
     searchToTest `shouldContain` expected
 
 testParseUrlError :: String -> Spec Unit
 testParseUrlError unparsedUrl =
   it ("should not parse " <> unparsedUrl) do
-    runParser httpURL unparsedUrl `shouldSatisfy` isLeft
+    parse unparsedUrl `shouldSatisfy` isLeft
 
 testParseUrlPath :: String -> Array String -> Spec Unit
 testParseUrlPath unparsedUrl expectedPath =
   it ("should parse " <> unparsedUrl <> " having path " <> show expectedPath) do
     let
-      actual = _.path <$> runParser httpURL unparsedUrl
+      actual = _.path <$> parse unparsedUrl
     actual `shouldContain` expectedPath
 
 testParseUrlData :: String -> Url -> Spec Unit
 testParseUrlData unparsedUrl expected =
   it ("should parse " <> unparsedUrl <> " into correct Url data") do
-    runParser httpURL unparsedUrl `shouldContain` expected
+    parse unparsedUrl `shouldContain` expected
 
 
