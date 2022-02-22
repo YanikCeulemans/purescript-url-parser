@@ -14,5 +14,6 @@ See the unit tests for more information.
 
 Future improvements:
 - [x] Provide a convenience function to parse urls. This will prevent the need to depend on `Text.Parsing.StringParser` as a consumer of this module.
+- [ ] Implement [IDNA](https://www.rfc-editor.org/rfc/rfc3490#section-4) ToASCII for hostname
 - [ ] Provide more functions to manipulate urls.
 - [ ] Prevent invalid `Url` construction by using smart constructors. It is now possible to create a negative port number for example.

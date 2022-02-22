@@ -36,6 +36,26 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       , search: Map.empty
       }
       "https://www.google.com:8080/"
+    testStringify
+      { scheme: "https://"
+      , hostPort:
+          { host: ".la"
+          , port: 80
+          }
+      , path: []
+      , search: Map.empty
+      }
+      "https://xn--ls8h.la"
+    testStringify
+      { scheme: "https://"
+      , hostPort:
+          { host: "www.google.com"
+          , port: 8080
+          }
+      , path: [ "escaped 𝐀🤔" ]
+      , search: Map.fromFoldable [ Tuple "🤜" [ "🤛" ] ]
+      }
+      "https://www.google.com:8080/escaped%20%f0%9d%90%80%ef%9b%b6%f0%9f%a4%94?%f0%9f%a4%9c=%f0%9f%a4%9b"
   describe "httpURL parser" do
     testParseUrlHost "http://www.google.com" "www.google.com"
     testParseUrlPort "http://www.google.com" { host: "www.google.com", port: 80 }

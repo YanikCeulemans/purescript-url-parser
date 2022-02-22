@@ -23,12 +23,16 @@ to generate this file without the comments in this block.
   , "integers"
   , "lists"
   , "maybe"
+  , "node-buffer"
+  , "ordered-collections"
+  , "partial"
   , "prelude"
   , "psci-support"
   , "spec"
   , "string-parsers"
   , "strings"
   , "transformers"
+  , "tuples"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
