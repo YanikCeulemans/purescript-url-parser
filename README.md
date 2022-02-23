@@ -7,7 +7,7 @@ The URL spec used in this project is from [RFC 1738, section 3.3](https://datatr
 
 The `Url` module provides the parsers `httpURL` and `httpsURL` from the `Text.Parsing.StringParser` module. For now, they can be run with the following snippet:
 ```purescript
-runParser httpURL "https://github.com"
+parse "https://github.com"
 ```
 This will give you either a `ParseError` or a `Url`. A `Url` can be stringified using the `toString` function.
 See the unit tests for more information.

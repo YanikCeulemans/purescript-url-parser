@@ -9,13 +9,11 @@ import Data.Char as Char
 import Data.Either (Either)
 import Data.Foldable (fold, intercalate)
 import Data.FoldableWithIndex (foldlWithIndex)
-import Data.FunctorWithIndex (mapWithIndex)
 import Data.Int as Int
 import Data.List (List, (:))
 import Data.List as List
 import Data.Map as Map
 import Data.Maybe (Maybe(..), fromMaybe, fromMaybe', maybe)
-import Data.String (toLower)
 import Data.String as String
 import Data.String.CodePoints as CodePoints
 import Data.String.CodeUnits (fromCharArray, singleton)
@@ -23,15 +21,14 @@ import Data.String.Regex as Regex
 import Data.String.Regex.Flags as RegexFlags
 import Data.String.Regex.Unsafe as UnsafeRegex
 import Data.Tuple (Tuple(..))
-import Debug as Debug
 import Node.Buffer.Immutable as IBuffer
 import Node.Encoding (Encoding(..))
 import Partial.Unsafe (unsafeCrashWith)
 import Text.Parsing.StringParser (Parser, fail, runParser, try)
-import Text.Parsing.StringParser.CodeUnits (alphaNum, anyDigit, anyLetter, char, eof, oneOf, string, upperCaseChar)
+import Text.Parsing.StringParser.CodeUnits (alphaNum, anyDigit, anyLetter, char, eof, oneOf, string)
 import Text.Parsing.StringParser.Combinators (choice, many1, optionMaybe, sepBy)
 
-scheme :: Parser String
+{- scheme :: Parser String
 scheme = toLower <<< fromCharArray <<< fromFoldable <$> many1 schemeCharacter
 
 schemeCharacter :: Parser Char
@@ -39,7 +36,7 @@ schemeCharacter =
   anyLetter
     <|> anyDigit
     <|> upperCaseChar
-    <|> oneOf [ '+', '.', '-' ]
+    <|> oneOf [ '+', '.', '-' ] -}
 
 type Url =
   { scheme :: String
@@ -67,44 +64,40 @@ toString url =
     n -> fold [ ":", show n ]
   showPath paths = fold [ "/", intercalate "/" $ map encode paths ]
 
-  showSearch :: Map.Map String (Array String) -> String
-  showSearch s
-    | Map.isEmpty s = ""
+  showSearch searchMap
+    | Map.isEmpty searchMap = ""
     | otherwise = fold
         [ "?"
         , intercalate "&"
             <<< join
-            -- TODO: Can this be cleaned up?
-            <<< fromFoldable
-            <<< Map.values
-            $ mapWithIndex concatKeyValues s
+            $ foldlWithIndex concatKeyValues [] searchMap
         ]
-  concatKeyValues key values = map (concatKeyValue key) values
+  concatKeyValues key result values = Array.snoc result $ map (concatKeyValue key) values
   concatKeyValue key value = fold [ encode key, "=", encode value ]
 
 encode :: String -> String
 encode input =
   splitInCharStrings input
     # map encodeSingleChar
-    >>> fold
+        >>> fold
   where
   splitInCharStrings = CodePoints.toCodePointArray >>> map CodePoints.singleton
   unreservedRegex = UnsafeRegex.unsafeRegex "[a-zA-Z0-9._~-]" RegexFlags.noFlags
   encodeSingleChar singleChar
     | Regex.test unreservedRegex singleChar = singleChar
-    | otherwise = 
-      IBuffer.fromString singleChar UTF8
-        # IBuffer.toString Hex
-        >>> String.split (String.Pattern "")
-        >>> prependHexSymbol
+    | otherwise =
+        IBuffer.fromString singleChar UTF8
+          # IBuffer.toString Hex
+              >>> String.split (String.Pattern "")
+              >>> prependHexSymbol
 
 prependHexSymbol :: Array String -> String
 prependHexSymbol = List.fromFoldable >>> prependHexSymbolRec ""
   where
   prependHexSymbolRec result = case _ of
     List.Nil -> result
-    x : y : xs -> prependHexSymbolRec (fold [result, "%", x, y]) xs
-    x : xs -> prependHexSymbolRec (fold [result, "%", x]) xs
+    x : y : xs -> prependHexSymbolRec (fold [ result, "%", x, y ]) xs
+    x : xs -> prependHexSymbolRec (fold [ result, "%", x ]) xs
 
 httpURL :: Parser Url
 httpURL = httpURL' "http://"
